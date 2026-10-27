@@ -55,7 +55,7 @@ public class BookDaoImpl implements BookDao {
                 return Optional.of(book);
             }
         } catch (SQLException e) {
-            throw new DataProcessingException("Cannot find a book from DB by id" + id, e);
+            throw new DataProcessingException("Cannot find a book from DB by id " + id, e);
         }
         return Optional.empty();
     }
@@ -80,8 +80,7 @@ public class BookDaoImpl implements BookDao {
     public Book update(Book book) {
         String sql = "UPDATE books SET title = ?, price = ? WHERE id = ?";
         try (Connection connection = ConnectionUtil.getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql,
-                        Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, book.getTitle());
             statement.setBigDecimal(2, book.getPrice());
             statement.setLong(3, book.getId());
@@ -100,11 +99,12 @@ public class BookDaoImpl implements BookDao {
     @Override
     public boolean deleteById(Long id) {
         String sql = "DELETE FROM books WHERE id = ?";
+        int affectedRows;
         try (Connection connection = ConnectionUtil.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
 
-            int affectedRows = statement.executeUpdate();
+            affectedRows = statement.executeUpdate();
             if (affectedRows < 1) {
                 throw new RuntimeException("Expected to delete at least one row,"
                         + " but inserted 0 rows.");
@@ -112,7 +112,7 @@ public class BookDaoImpl implements BookDao {
         } catch (Exception e) {
             throw new DataProcessingException("Cannot delete a book by id " + id, e);
         }
-        return true;
+        return affectedRows > 0;
     }
 
     private Book parseBook(ResultSet resultSet) throws SQLException {
